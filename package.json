@@ -1,0 +1,21 @@
+{
+  "name": "cloude-issue-trackerrr22",
+  "version": "1.0.0",
+  "description": "Starter application used across the Cloud Computing and Cloud Security  labs. \r realG",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/omarr112434/cloude-issue-trackerrr22.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/omarr112434/cloude-issue-trackerrr22/issues"
+  },
+  "homepage": "https://github.com/omarr112434/cloude-issue-trackerrr22#readme"
+}
