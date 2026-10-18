@@ -1,0 +1,541 @@
+{
+  "info": {
+    "_postman_id": "6f1c2a4e-3b8d-4c1e-9a7f-2d5e8b0c4a91",
+    "name": "Cloud Issue Tracker API",
+    "description": "Lab 4 tests for the Cloud Issue Tracker REST API (T01-T12 in docs/api-test-plan.md).\n\nStart the API first: cd backend, npm run dev.\nCollection variables: baseUrl (default http://localhost:3000) and issueId (set automatically by \"Create issue\"; defaults to ISS-101 from the seed data).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "View issues",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "pm.test('Body is a JSON array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/issues",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "issues"
+          ]
+        },
+        "description": "T01: Returns every stored issue as a JSON array."
+      },
+      "response": []
+    },
+    {
+      "name": "Create issue",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+              "const issue = pm.response.json();",
+              "pm.test('Server generated an id', () => pm.expect(issue.id).to.be.a('string').and.not.empty);",
+              "pm.test('Status is Open', () => pm.expect(issue.status).to.eql('Open'));",
+              "pm.test('createdAt is a current ISO date', () => pm.expect(Math.abs(Date.now() - Date.parse(issue.createdAt))).to.be.below(60000));",
+              "pm.collectionVariables.set('issueId', issue.id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/issues",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "issues"
+          ]
+        },
+        "description": "T02: Creates a valid issue. The server adds id, status and createdAt.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Printer unavailable\",\n  \"description\": \"The shared printer is not responding.\",\n  \"priority\": \"Medium\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Change issue status",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+              "pm.test('Issue status is Resolved', () => pm.expect(pm.response.json().status).to.eql('Resolved'));",
+              "pm.test('Complete issue returned', () => pm.expect(pm.response.json()).to.include.all.keys('id', 'title', 'description', 'priority', 'status', 'createdAt'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/issues/{{issueId}}/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "issues",
+            "{{issueId}}",
+            "status"
+          ]
+        },
+        "description": "T05: Marks the issue in {{issueId}} as Resolved. Run \"Create issue\" first, or set issueId to an id returned by GET.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"Resolved\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Invalid Create Issue",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 400', () => pm.response.to.have.status(400));",
+              "pm.test('Error code is VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));",
+              "pm.test('Error message matches the contract', () => pm.expect(pm.response.json().error.message).to.eql(\"Title must contain between 3 and 100 characters.\"));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/issues",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "issues"
+          ]
+        },
+        "description": "T03: Empty title and invalid priority. The title rule is checked first.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"\",\n  \"description\": \"Missing valid title\",\n  \"priority\": \"Urgent\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Invalid Create Issue (Priority)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 400', () => pm.response.to.have.status(400));",
+              "pm.test('Error code is VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));",
+              "pm.test('Error message matches the contract', () => pm.expect(pm.response.json().error.message).to.eql(\"Priority must be Low, Medium or High.\"));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/issues",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "issues"
+          ]
+        },
+        "description": "T04: Valid title and description, but priority Critical is not allowed.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Printer unavailable\",\n  \"description\": \"The shared printer is not responding.\",\n  \"priority\": \"Critical\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update Unknown Issue",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 404', () => pm.response.to.have.status(404));",
+              "pm.test('Error code is ISSUE_NOT_FOUND', () => pm.expect(pm.response.json().error.code).to.eql('ISSUE_NOT_FOUND'));",
+              "pm.test('Error message matches the contract', () => pm.expect(pm.response.json().error.message).to.eql(\"Issue not found.\"));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/issues/does-not-exist/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "issues",
+            "does-not-exist",
+            "status"
+          ]
+        },
+        "description": "T07: No issue has this id.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"Resolved\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Unknown Route",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 404', () => pm.response.to.have.status(404));",
+              "pm.test('Error code is ROUTE_NOT_FOUND', () => pm.expect(pm.response.json().error.code).to.eql('ROUTE_NOT_FOUND'));",
+              "pm.test('Error message matches the contract', () => pm.expect(pm.response.json().error.message).to.eql(\"Route not found.\"));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/fake-url",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "fake-url"
+          ]
+        },
+        "description": "T12: The method and path do not match any endpoint."
+      },
+      "response": []
+    },
+    {
+      "name": "Invalid Status Change",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 400', () => pm.response.to.have.status(400));",
+              "pm.test('Error code is VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));",
+              "pm.test('Error message matches the contract', () => pm.expect(pm.response.json().error.message).to.eql(\"Status must be Open or Resolved.\"));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/issues/{{issueId}}/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "issues",
+            "{{issueId}}",
+            "status"
+          ]
+        },
+        "description": "T06: Deleted is not an allowed status.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"Deleted\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Issue with Server-Owned Fields",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+              "const issue = pm.response.json();",
+              "pm.test('id is a new UUID, not HACKED-1', () => pm.expect(issue.id).to.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/));",
+              "pm.test('Status is Open, not Resolved', () => pm.expect(issue.status).to.eql('Open'));",
+              "pm.test('createdAt is now, not 2000-01-01', () => pm.expect(issue.createdAt).to.not.eql('2000-01-01T00:00:00.000Z'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/issues",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "issues"
+          ]
+        },
+        "description": "T09: The client tries to choose id, status and createdAt. The server must ignore them.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": \"HACKED-1\",\n  \"title\": \"Projector flickering\",\n  \"description\": \"The projector in room B204 flickers.\",\n  \"priority\": \"Low\",\n  \"status\": \"Resolved\",\n  \"createdAt\": \"2000-01-01T00:00:00.000Z\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Issue Without JSON",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 415', () => pm.response.to.have.status(415));",
+              "pm.test('Error code is UNSUPPORTED_MEDIA_TYPE', () => pm.expect(pm.response.json().error.code).to.eql('UNSUPPORTED_MEDIA_TYPE'));",
+              "pm.test('Error message matches the contract', () => pm.expect(pm.response.json().error.message).to.eql(\"Content-Type must be application/json.\"));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "text/plain"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/issues",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "issues"
+          ]
+        },
+        "description": "T10: Body sent as plain text (Content-Type: text/plain).",
+        "body": {
+          "mode": "raw",
+          "raw": "title=Printer",
+          "options": {
+            "raw": {
+              "language": "text"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Issue with Malformed JSON",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 400', () => pm.response.to.have.status(400));",
+              "pm.test('Error code is VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));",
+              "pm.test('Error message matches the contract', () => pm.expect(pm.response.json().error.message).to.eql(\"Request body is not valid JSON.\"));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/issues",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "issues"
+          ]
+        },
+        "description": "T11: Trailing comma after the last item. The server must answer 400 and keep running.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Printer unavailable\",\n  \"description\": \"The shared printer is not responding.\",\n  \"priority\": \"Medium\",\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "View Issues When None Exist",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200, not 404', () => pm.response.to.have.status(200));",
+              "pm.test('Body is an empty array (empty data/issues.json first)', () => pm.expect(pm.response.json()).to.eql([]));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/issues",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "issues"
+          ]
+        },
+        "description": "T08: Before sending: copy backend/data/issues.json somewhere safe, replace its content with [] and save. Afterwards paste the original content back. No restart is needed."
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "issueId",
+      "value": "ISS-101",
+      "type": "string"
+    }
+  ]
+}

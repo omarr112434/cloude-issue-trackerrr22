@@ -1,0 +1,93 @@
+# Lab 4 API tests for the VS Code REST Client extension.
+# Start the API first (cd backend, npm run dev), then click "Send Request" above a test.
+
+@baseUrl = http://localhost:3000
+# Replace with an id returned by GET or POST if ISS-101 is not in data/issues.json
+@issueId = ISS-101
+
+### T01 View all issues
+GET {{baseUrl}}/api/issues
+
+### T02 Create a valid issue
+POST {{baseUrl}}/api/issues
+Content-Type: application/json
+
+{
+  "title": "Printer unavailable",
+  "description": "The shared printer is not responding.",
+  "priority": "Medium"
+}
+
+### T03 Invalid create: empty title (title rule fails first)
+POST {{baseUrl}}/api/issues
+Content-Type: application/json
+
+{
+  "title": "",
+  "description": "Missing valid title",
+  "priority": "Urgent"
+}
+
+### T04 Invalid create: priority Critical is not allowed
+POST {{baseUrl}}/api/issues
+Content-Type: application/json
+
+{
+  "title": "Printer unavailable",
+  "description": "The shared printer is not responding.",
+  "priority": "Critical"
+}
+
+### T05 Change issue status
+PATCH {{baseUrl}}/api/issues/{{issueId}}/status
+Content-Type: application/json
+
+{ "status": "Resolved" }
+
+### T06 Invalid status change
+PATCH {{baseUrl}}/api/issues/{{issueId}}/status
+Content-Type: application/json
+
+{ "status": "Deleted" }
+
+### T07 Update an unknown issue
+PATCH {{baseUrl}}/api/issues/does-not-exist/status
+Content-Type: application/json
+
+{ "status": "Resolved" }
+
+### T08 View issues when none exist
+# Replace the content of data/issues.json with [] first, then paste it back afterwards.
+GET {{baseUrl}}/api/issues
+
+### T09 Create with server-owned fields (the server must ignore them)
+POST {{baseUrl}}/api/issues
+Content-Type: application/json
+
+{
+  "id": "HACKED-1",
+  "title": "Projector flickering",
+  "description": "The projector in room B204 flickers.",
+  "priority": "Low",
+  "status": "Resolved",
+  "createdAt": "2000-01-01T00:00:00.000Z"
+}
+
+### T10 Create without JSON
+POST {{baseUrl}}/api/issues
+Content-Type: text/plain
+
+title=Printer
+
+### T11 Create with malformed JSON (trailing comma)
+POST {{baseUrl}}/api/issues
+Content-Type: application/json
+
+{
+  "title": "Printer unavailable",
+  "description": "The shared printer is not responding.",
+  "priority": "Medium",
+}
+
+### T12 Unknown route
+PATCH {{baseUrl}}/api/fake-url
