@@ -1,16 +1,14 @@
 {
-  "name": "frontend",
+  "name": "backend",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-     "start": "node server.js", 
-   "dev": "node --watch server.js" 
- },
+  "description": "REST API for the Cloud Issue Tracker",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
-  "devDependencies": {
-    "http-server": "^14.1.1"
-  }
+  "type": "commonjs"
 }
