@@ -53,6 +53,17 @@ function renderIssues() {
     issuesList.appendChild(card);
   });
 }
+
+function toggleIssueStatus(issueId) {
+  const issue = issues.find((item) => item.id === issueId);
+  if (!issue) {
+    return;
+  }
+
+  issue.status = issue.status === "Open" ? "Resolved" : "Open";
+  renderIssues();
+}
+
 issueForm.addEventListener("submit", (event) => {
   event.preventDefault();
 
