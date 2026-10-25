@@ -3,6 +3,7 @@ const issueController = require('../controllers/issues');
 
 const router = express.Router();
 
+// Each line: HTTP method + path -> controller function
 router.get('/', issueController.listIssues);
 router.post('/', issueController.createIssue);
 router.patch('/:id/status', issueController.updateIssueStatus);

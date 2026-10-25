@@ -1,28 +1,61 @@
-# cloude-issue-trackerrr22
-Starter application used across the Cloud Computing and Cloud Security  labs. 
-realG
+# Cloud Issue Tracker (Lab 5 complete project)
 
-## Lab 3 — Application and API Design
+A small full-stack app: a static HTML/CSS/JS frontend, an Express REST API and a Neon Postgres database.
+Both the frontend and the API deploy to Vercel.
 
-The Cloud Issue Tracker now has a documented three-layer architecture and a REST API contract for create, view and status-change operations. The backend project is initialised and its data service reads and writes issues in backend/data/issues.json. See the files in /docs before implementing the API routes.
+**All the code from Lab 5 is already here.** You do not write code in this lab: you read it, run it,
+and fill in the placeholders listed below.
 
-## Lab 4 — REST API with Node.js and Express
+## The only things you fill in
 
-The backend is now a working Express REST API that implements `docs/api-contract.md` and stores issues in `backend/data/issues.json`, so they survive a server restart.
+| When | Where | Placeholder | Put in |
+|---|---|---|---|
+| Part 9 | `backend/.env` | `DATABASE_URL=` (empty) | Your Neon connection string |
+| Part 10 | Vercel API project → Environment Variables | `DATABASE_URL`, `CORS_ORIGINS`, `NODE_ENV` | Neon string, `http://localhost:8080`, `production` |
+| Part 11 | `frontend/js/config.js` | `YOUR-API-PROJECT` | Your Vercel API domain name |
+| Part 12 | Vercel API project → `CORS_ORIGINS` | add your frontend | `http://localhost:8080,https://<your-web-project>.vercel.app` |
+| Part 13 | `frontend/vercel.json` | `YOUR-API-PROJECT` | The same API domain as in `config.js` |
+
+Search the project for `YOUR-` to find every placeholder in the code.
+
+## Where the data is stored
+
+`backend/services/issueService.js` chooses the storage automatically:
+
+| `DATABASE_URL` | Storage used | Lab parts |
+|---|---|---|
+| empty | `backend/data/issues.json` (Lab 4 version, `jsonIssueService.js`) | Parts 1 to 8 |
+| set | Neon Postgres (`neonIssueService.js`) | Part 9 onwards, required on Vercel |
+
+When the backend starts, the terminal prints which storage is in use.
+
+## Run locally
 
 ```bash
+# Terminal 1
 cd backend
 npm install
-cp .env.example .env      # Windows: copy .env.example .env
-npm run dev
+npm run dev               # http://localhost:3000/api/health
+
+# Terminal 2
+cd frontend
+npm install
+npm start                 # http://localhost:8080
 ```
 
-The API listens on `http://localhost:3000`.
+`node --watch` does not reload after a `.env` change: stop and restart `npm run dev` after editing `.env`.
 
-| Method | Path | Purpose |
+## Folders
+
+| Folder | Purpose | Deployed as |
 |---|---|---|
-| GET | `/api/issues` | View all issues |
-| POST | `/api/issues` | Create an issue |
-| PATCH | `/api/issues/{id}/status` | Change an issue status |
+| `frontend/` | Browser app (`index.html`, `js/config.js`, `js/app.js`, `vercel.json`) | Vercel project, Root Directory `frontend`, Framework Preset Other |
+| `backend/` | Express REST API (`server.js`, routes, controller, services) | Vercel project, Root Directory `backend` (Express detected automatically) |
+| `docs/` | API contract, test plan, quick deployment guide | not deployed |
+| `evidence/` | Postman collection | not deployed |
 
-Tests: `docs/api-test-plan.md`, the Postman collection `evidence/lab-04-postman-collection.json` and `backend/requests.http`.
+## Secrets
+
+- `backend/.env` is listed in `.gitignore`: check `git status` before every commit; it must never appear.
+- `DATABASE_URL` lives only in `backend/.env` and in the Vercel API project settings.
+- Nothing in `frontend/` is secret: every visitor can read it.
